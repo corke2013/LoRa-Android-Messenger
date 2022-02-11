@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">LoRa Messenger</string>
+    <string name="clear_messages">Clear Messages</string>
+    <string name="quit">Quit</string>
+</resources>

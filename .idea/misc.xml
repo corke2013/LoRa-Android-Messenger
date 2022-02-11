@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/activity_main.xml" value="0.5" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/activity_username.xml" value="0.40520833333333334" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/item_custom_row.xml" value="0.2212962962962963" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/meeage_line.xml" value="0.5" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/received_message_line.xml" value="0.55" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/recieved_message_line.xml" value="0.55" />
+        <entry key="..\:/Users/Keegan/Documents/AndroidStudioProjects/LoRaMessenger/app/src/main/res/layout/sent_message_line.xml" value="0.55" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
