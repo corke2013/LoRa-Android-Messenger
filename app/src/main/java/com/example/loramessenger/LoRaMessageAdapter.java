@@ -9,15 +9,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class LoRaMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    List<LoRaMessage> loRaMessageList;
+    List<LoRaTextMessage> loRaTextMessageList;
 
-    public LoRaMessageAdapter(List<LoRaMessage> loRaMessageList) {
-        this.loRaMessageList = loRaMessageList;
+    public LoRaMessageAdapter(List<LoRaTextMessage> loRaTextMessageList) {
+        this.loRaTextMessageList = loRaTextMessageList;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (loRaMessageList.get(position).getMessageType() == LoRaMessageType.RECEIVED) {
+        if (loRaTextMessageList.get(position).getMessageType() == LoRaMessageType.RECEIVED) {
             return 0;
         }
         return 1;
@@ -35,15 +35,15 @@ public class LoRaMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder.getItemViewType() == 0) {
-            ((ReceivedMessageViewHolder) holder).getTextViewSender().setText(loRaMessageList.get(position).getSender());
-            ((ReceivedMessageViewHolder) holder).getTextViewMessage().setText(loRaMessageList.get(position).getMessage());
+            ((ReceivedMessageViewHolder) holder).getTextViewSender().setText(loRaTextMessageList.get(position).getSender());
+            ((ReceivedMessageViewHolder) holder).getTextViewMessage().setText(loRaTextMessageList.get(position).getMessage());
         } else {
-            ((SentMessageViewHolder) holder).getTextViewMessage().setText(loRaMessageList.get(position).getMessage());
+            ((SentMessageViewHolder) holder).getTextViewMessage().setText(loRaTextMessageList.get(position).getMessage());
         }
     }
 
     @Override
     public int getItemCount() {
-        return loRaMessageList.size();
+        return loRaTextMessageList.size();
     }
 }

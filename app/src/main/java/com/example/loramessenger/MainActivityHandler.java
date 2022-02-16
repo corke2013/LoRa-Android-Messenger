@@ -19,12 +19,8 @@ public class MainActivityHandler extends Handler {
     public void handleMessage(Message msg) {
         MainActivity mainActivity = mainActivityWeakReference.get();
         if (mainActivity != null) {
-            switch (msg.what) {
-                case UPDATE_NEW_MESSAGE:
-                    mainActivity.stuff((LoRaMessage) msg.obj);
-                    break;
-                default:
-                    super.handleMessage(msg);
+            if (msg.what == UPDATE_NEW_MESSAGE) {
+                mainActivity.stuff((LoRaTextMessage) msg.obj);
             }
             super.handleMessage(msg);
         }

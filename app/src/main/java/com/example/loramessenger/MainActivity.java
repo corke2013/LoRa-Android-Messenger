@@ -23,8 +23,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private final Messenger messenger = new Messenger(new MainActivityHandler(this));
-    private final List<LoRaMessage> loRaMessageList = new ArrayList<>();
-    private final LoRaMessageAdapter myAdapter = new LoRaMessageAdapter(loRaMessageList);
+    private final List<LoRaTextMessage> loRaTextMessageList = new ArrayList<>();
+    private final LoRaMessageAdapter myAdapter = new LoRaMessageAdapter(loRaTextMessageList);
     private DatabaseHelper dataBaseHelper;
     private LoRaService loRaService;
     boolean mBound = false;
@@ -56,8 +56,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loRaMessageList.clear();
-        loRaMessageList.addAll(dataBaseHelper.getMessages());
+        loRaTextMessageList.clear();
+        loRaTextMessageList.addAll(dataBaseHelper.getMessages());
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
     }
 
@@ -90,12 +90,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, UsernameActivity.class);
             startActivity(intent);
         }
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                sendMessage(dataBaseHelper.getUsername(), messageEditText.getText().toString());
-                messageEditText.setText("");
-            }
+        sendButton.setOnClickListener(view -> {
+            sendMessage(dataBaseHelper.getUsername(), messageEditText.getText().toString());
+            messageEditText.setText("");
         });
     }
 
@@ -111,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.clear_messages) {
             myAdapter.notifyItemRangeRemoved(0, myAdapter.getItemCount());
             dataBaseHelper.truncateMessages();
-            loRaMessageList.clear();
+            loRaTextMessageList.clear();
         }
         if (id == R.id.quit) {
             exit();
@@ -119,19 +116,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void stuff(LoRaMessage loRaMessage) {
-        loRaMessageList.add(loRaMessage);
+    public void stuff(LoRaTextMessage loRaTextMessage) {
+        loRaTextMessageList.add(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
     }
 
 
     public void sendMessage(String username, String strMessage) {
-        LoRaMessage loRaMessage = new LoRaMessage(username, strMessage);
-        loRaMessage.setMessageType(LoRaMessageType.SENT);
-        loRaMessageList.add(loRaMessage);
-        dataBaseHelper.addMessage(loRaMessage);
+        LoRaTextMessage loRaTextMessage = new LoRaTextMessage(username, strMessage);
+        loRaTextMessage.setMessageType(LoRaMessageType.SENT);
+        loRaTextMessageList.add(loRaTextMessage);
+        dataBaseHelper.addMessage(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
-        loRaService.send(loRaMessage);
+        loRaService.send(loRaTextMessage);
     }
 
     public void exit() {

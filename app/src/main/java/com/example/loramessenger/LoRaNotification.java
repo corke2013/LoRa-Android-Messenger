@@ -48,14 +48,14 @@ class LoRaNotification {
         return builder.build();
     }
 
-    public static void sendNewMessageNotification(Context context, LoRaMessage loRaMessage, int requestCode, int flags) {
+    public static void sendNewMessageNotification(Context context, LoRaTextMessage loRaTextMessage, int requestCode, int flags) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, flags);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NEW_MESSAGE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification_icon)
-                .setContentTitle("New Message from " + loRaMessage.getSender())
-                .setContentText(loRaMessage.getMessage())
+                .setContentTitle("New Message from " + loRaTextMessage.getSender())
+                .setContentText(loRaTextMessage.getMessage())
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
         notificationManager.notify(MESSAGE_NOTIFICATION_ID, builder.build());

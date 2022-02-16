@@ -1,14 +1,14 @@
 package com.example.loramessenger;
+
 import android.content.Context;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 
-import org.apache.commons.lang3.SerializationUtils;
+import com.google.protobuf.Any;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 public class SocketReadThread extends Thread {
     private static Messenger messenger;
@@ -44,23 +44,19 @@ public class SocketReadThread extends Thread {
     }
 
     private void readData() throws IOException {
-        int payloadSize = dataInputStream.readInt();
-        if (251 >= payloadSize && payloadSize >= 0) {
-            byte[] buff = new byte[payloadSize];
-            dataInputStream.read(buff, 0, payloadSize);
-            LoRaMessage loRaMessage = new LoRaMessage(((String) SerializationUtils.deserialize(buff)).split(":")[0],
-                    ((String) SerializationUtils.deserialize(buff)).split(":")[1]);
-            loRaMessage.setMessageType(LoRaMessageType.RECEIVED);
-            dataBaseHelper.addMessage(loRaMessage);
-            if (messenger != null) {
-                try {
-                    messenger.send(Message.obtain(null, MainActivityHandler.UPDATE_NEW_MESSAGE, loRaMessage));
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                LoRaNotification.sendNewMessageNotification(context, loRaMessage, 0, 0);
+        Any any = Any.parseDelimitedFrom(dataInputStream);
+        com.example.loramessenger.protos.compiled.LoRaTextMessage.TextMessage textMessage = any.unpack(com.example.loramessenger.protos.compiled.LoRaTextMessage.TextMessage.class);
+        LoRaTextMessage loRaTextMessage = new LoRaTextMessage(textMessage.getMetadata().getSender(), textMessage.getMessage());
+        loRaTextMessage.setMessageType(LoRaMessageType.RECEIVED);
+        dataBaseHelper.addMessage(loRaTextMessage);
+        if (messenger != null) {
+            try {
+                messenger.send(Message.obtain(null, MainActivityHandler.UPDATE_NEW_MESSAGE, loRaTextMessage));
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
+        } else {
+            LoRaNotification.sendNewMessageNotification(context, loRaTextMessage, 0, 0);
         }
     }
 }

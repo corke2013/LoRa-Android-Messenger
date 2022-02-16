@@ -1,19 +1,19 @@
 package com.example.loramessenger;
 
-import org.apache.commons.lang3.SerializationUtils;
+import com.example.loramessenger.protos.compiled.LoRaMetadata;
+import com.google.protobuf.Any;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-public class SocketWriteThread extends Thread{
-    private byte[] payload;
+public class SocketWriteThread extends Thread {
+    private Any any;
     DataOutputStream dataOutputStream;
 
     @Override
     public void run() {
         boolean run = true;
-        while(run){
+        while (run) {
             try {
                 writeData();
             } catch (IOException | InterruptedException e) {
@@ -23,24 +23,29 @@ public class SocketWriteThread extends Thread{
         }
     }
 
-    public void startThread(DataOutputStream dataOutputStream){
+    public void startThread(DataOutputStream dataOutputStream) {
         this.dataOutputStream = dataOutputStream;
         super.start();
     }
 
-    public synchronized void write(LoRaMessage loRaMessage) {
-        byte[] s2 = SerializationUtils.serialize(loRaMessage.getSender() + ":" + loRaMessage.getMessage());
-        byte[] s1 = ByteBuffer.allocate(4).putInt(s2.length).array();
-        payload = new byte[s1.length + s2.length];
-        System.arraycopy(s1, 0, payload, 0, s1.length);
-        System.arraycopy(s2, 0, payload, s1.length, s2.length);
+    public synchronized void write(LoRaTextMessage loRaTextMessage) {
+        LoRaMetadata.Metadata metadata = LoRaMetadata.Metadata.newBuilder()
+                .setRecipient("")
+                .setSender(loRaTextMessage.getSender())
+                .setTime(0)
+                .setUuid("")
+                .build();
+        any = Any.pack(com.example.loramessenger.protos.compiled.LoRaTextMessage.TextMessage.newBuilder()
+                .setMetadata(metadata)
+                .setMessage(loRaTextMessage.getMessage())
+                .build());
         this.notify();
     }
 
     private synchronized void writeData() throws IOException, InterruptedException {
-        if (payload == null) this.wait();
-        dataOutputStream.write(payload);
+        if (any == null) this.wait();
+        any.writeDelimitedTo(dataOutputStream);
         dataOutputStream.flush();
-        payload = null;
+        any = null;
     }
 }

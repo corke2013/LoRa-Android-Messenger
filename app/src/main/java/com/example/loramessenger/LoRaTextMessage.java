@@ -1,12 +1,12 @@
 package com.example.loramessenger;
 import java.io.Serializable;
 
-public class LoRaMessage implements Serializable {
+public class LoRaTextMessage implements Serializable {
     private LoRaMessageType loRaMessageType;
     private final String sender;
     private final String message;
 
-    public LoRaMessage(String sender, String message) {
+    public LoRaTextMessage(String sender, String message) {
         this.sender = sender;
         this.message = message;
     }

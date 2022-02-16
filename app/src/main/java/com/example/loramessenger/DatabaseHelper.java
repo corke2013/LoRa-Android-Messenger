@@ -1,9 +1,11 @@
 package com.example.loramessenger;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import androidx.annotation.Nullable;
 
 import org.apache.commons.lang3.SerializationUtils;
@@ -29,45 +31,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public synchronized void addMessage(LoRaMessage loRaMessage) {
+    public synchronized void addMessage(LoRaTextMessage loRaTextMessage) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put("MESSAGE", SerializationUtils.serialize(loRaMessage));
+        contentValues.put("MESSAGE", SerializationUtils.serialize(loRaTextMessage));
         database.insert("GROUP_MESSAGE_TABLE", null, contentValues);
     }
 
-    public void addUsername(String username){
+    public void addUsername(String username) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("NAME", username);
         database.insert("USERNAME", null, contentValues);
     }
 
-    public List<LoRaMessage> getMessages() {
-        List<LoRaMessage> loRaMessageList = new ArrayList<>();
+    public List<LoRaTextMessage> getMessages() {
+        List<LoRaTextMessage> loRaTextMessageList = new ArrayList<>();
         String queryString = "SELECT * FROM GROUP_MESSAGE_TABLE";
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery(queryString, null);
         if (cursor.moveToFirst()) {
             do {
-                LoRaMessage loRaMessage = SerializationUtils.deserialize(cursor.getBlob(1));
-                loRaMessageList.add(loRaMessage);
+                LoRaTextMessage loRaTextMessage = SerializationUtils.deserialize(cursor.getBlob(1));
+                loRaTextMessageList.add(loRaTextMessage);
             } while (cursor.moveToNext());
         }
-        return loRaMessageList;
+        cursor.close();
+        return loRaTextMessageList;
     }
 
     public String getUsername() {
+        String username = "";
         String queryString = "SELECT * FROM USERNAME LIMIT 1";
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.rawQuery(queryString, null);
         if (cursor.moveToFirst()) {
-            return cursor.getString(1);
+            username = cursor.getString(1);
+            cursor.close();
+            return username;
         }
-        return "";
+        return username;
     }
 
-    public void truncateMessages(){
+    public void truncateMessages() {
         String queryString = "DELETE FROM GROUP_MESSAGE_TABLE";
         SQLiteDatabase database = this.getWritableDatabase();
         database.execSQL(queryString);

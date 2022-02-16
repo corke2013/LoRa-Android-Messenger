@@ -40,7 +40,7 @@ public class LoRaService extends Service {
         socketRunnable.setMessenger(messenger);
     }
 
-    public void send(LoRaMessage loRaMessage) {
-        socketRunnable.write(loRaMessage);
+    public void send(LoRaTextMessage loRaTextMessage) {
+        socketRunnable.write(loRaTextMessage);
     }
 }

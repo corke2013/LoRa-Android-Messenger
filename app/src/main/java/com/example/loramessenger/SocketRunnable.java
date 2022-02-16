@@ -46,6 +46,7 @@ public class SocketRunnable implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
+                    //noinspection BusyWait
                     Thread.sleep(retryInterval);
                 } catch (InterruptedException interruptedException) {
                     interruptedException.printStackTrace();
@@ -67,8 +68,8 @@ public class SocketRunnable implements Runnable {
         socketReadThread.setMessenger(messenger);
     }
 
-    public void write(LoRaMessage loRaMessage) {
-        socketWriteThread.write(loRaMessage);
+    public void write(LoRaTextMessage loRaTextMessage) {
+        socketWriteThread.write(loRaTextMessage);
     }
 
     private void connect() throws IOException {
