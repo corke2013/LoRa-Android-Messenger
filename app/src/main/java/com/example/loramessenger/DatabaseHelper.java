@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
+import com.example.loramessenger.messages.LoRaTextMessage;
+
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.util.ArrayList;

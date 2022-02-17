@@ -6,6 +6,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.loramessenger.messages.LoRaMessageType;
+import com.example.loramessenger.messages.LoRaTextMessage;
+
 import java.util.List;
 
 public class LoRaMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -39,6 +42,12 @@ public class LoRaMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             ((ReceivedMessageViewHolder) holder).getTextViewMessage().setText(loRaTextMessageList.get(position).getMessage());
         } else {
             ((SentMessageViewHolder) holder).getTextViewMessage().setText(loRaTextMessageList.get(position).getMessage());
+            if (loRaTextMessageList.get(position).isDelivered()){
+                ((SentMessageViewHolder) holder).getTextViewDelivered().setText("Delivered");
+            }
+            else {
+                ((SentMessageViewHolder) holder).getTextViewDelivered().setText("Sent");
+            }
         }
     }
 

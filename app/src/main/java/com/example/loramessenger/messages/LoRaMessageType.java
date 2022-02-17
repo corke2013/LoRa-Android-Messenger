@@ -1,4 +1,4 @@
-package com.example.loramessenger;
+package com.example.loramessenger.messages;
 
 public enum LoRaMessageType {
     RECEIVED,

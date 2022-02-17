@@ -5,72 +5,34 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Messenger;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.example.loramessenger.handlers.MainActivityHandler;
+import com.example.loramessenger.messages.LoRaMessageType;
+import com.example.loramessenger.messages.LoRaTextMessage;
+import com.example.loramessenger.protos.compiled.LoRaAckMessageProto;
+import com.example.loramessenger.protos.compiled.LoRaMetadataProto;
+import com.example.loramessenger.protos.compiled.LoRaTextMessageProto;
+import com.google.protobuf.Any;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private final Messenger messenger = new Messenger(new MainActivityHandler(this));
     private final List<LoRaTextMessage> loRaTextMessageList = new ArrayList<>();
     private final LoRaMessageAdapter myAdapter = new LoRaMessageAdapter(loRaTextMessageList);
+    private final LoRaServiceConnection loRaServiceConnection = new LoRaServiceConnection(new Messenger(new MainActivityHandler(this)));
     private DatabaseHelper dataBaseHelper;
-    private LoRaService loRaService;
-    boolean mBound = false;
-
-    private final ServiceConnection connection = new ServiceConnection() {
-        //        Don't like this
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            LoRaServiceBinder loRaServiceBinder = (LoRaServiceBinder) service;
-            loRaService = loRaServiceBinder.getService();
-            loRaService.setMessenger(messenger);
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-        }
-    };
-//    Don't like this
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(this, LoRaService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loRaTextMessageList.clear();
-        loRaTextMessageList.addAll(dataBaseHelper.getMessages());
-        myAdapter.notifyItemInserted(myAdapter.getItemCount());
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        loRaService.setMessenger(null);
-        unbindService(connection);
-        mBound = false;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = findViewById(R.id.bleh);
@@ -91,9 +53,26 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         sendButton.setOnClickListener(view -> {
-            sendMessage(dataBaseHelper.getUsername(), messageEditText.getText().toString());
+            sendTextMessage(dataBaseHelper.getUsername(), messageEditText.getText().toString());
             messageEditText.setText("");
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, LoRaService.class);
+        bindService(intent, loRaServiceConnection, Context.BIND_AUTO_CREATE);
+        loRaTextMessageList.clear();
+        loRaTextMessageList.addAll(dataBaseHelper.getMessages());
+        myAdapter.notifyItemInserted(myAdapter.getItemCount());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        loRaServiceConnection.getLoRaService().setMessenger(null);
+        unbindService(loRaServiceConnection);
     }
 
     @Override
@@ -116,24 +95,49 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //    Calls from handler
     public void stuff(LoRaTextMessage loRaTextMessage) {
         loRaTextMessageList.add(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
+        sendAckMessage(loRaTextMessage.getUuid());
     }
 
+    public void stuff2(LoRaAckMessageProto.AckMessage ackMessage) {
+        loRaTextMessageList.get(ackMessage.getMetadata().getUuid()).setDelivered(true);
+        myAdapter.notifyItemChanged(ackMessage.getMetadata().getUuid());
+    }
 
-    public void sendMessage(String username, String strMessage) {
-        LoRaTextMessage loRaTextMessage = new LoRaTextMessage(username, strMessage);
+    private void sendTextMessage(String username, String strMessage) {
+        LoRaTextMessage loRaTextMessage = new LoRaTextMessage(username, strMessage, myAdapter.getItemCount());
         loRaTextMessage.setMessageType(LoRaMessageType.SENT);
         loRaTextMessageList.add(loRaTextMessage);
         dataBaseHelper.addMessage(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
-        loRaService.send(loRaTextMessage);
+        LoRaMetadataProto.Metadata metadata = LoRaMetadataProto.Metadata.newBuilder()
+                .setSender(loRaTextMessage.getSender())
+                .setUuid(loRaTextMessage.getUuid())
+                .build();
+        LoRaTextMessageProto.TextMessage textMessage = LoRaTextMessageProto.TextMessage.newBuilder()
+                .setMetadata(metadata)
+                .setMessage(strMessage)
+                .build();
+        loRaServiceConnection.getLoRaService().write(Any.pack(textMessage));
     }
 
-    public void exit() {
-        Intent serviceIntent = new Intent(this, LoRaService.class);
-        stopService(serviceIntent);
+    private void sendAckMessage(int uuid) {
+        LoRaMetadataProto.Metadata metadata = LoRaMetadataProto.Metadata.newBuilder()
+                .setUuid(uuid)
+                .build();
+        LoRaAckMessageProto.AckMessage ackMessage = LoRaAckMessageProto.AckMessage.newBuilder()
+                .setMetadata(metadata)
+                .setReceived(true)
+                .build();
+        loRaServiceConnection.getLoRaService().write(Any.pack(ackMessage));
+    }
+
+    private void exit() {
+        Intent intent = new Intent(this, LoRaService.class);
+        stopService(intent);
         this.finishAndRemoveTask();
     }
 }

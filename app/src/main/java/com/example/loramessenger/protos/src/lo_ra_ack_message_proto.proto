@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option java_package = "com.example.loramessenger.protos.compiled";
+
+import "com/example/loramessenger/protos/src/lo_ra_metadata_proto.proto";
+
+message AckMessage {
+  optional Metadata metadata = 1;
+  optional bool received = 2;
+}

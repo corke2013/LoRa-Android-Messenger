@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option java_package = "com.example.loramessenger.protos.compiled";
+
+message Metadata {
+  optional string recipient = 1;
+  optional string sender = 2;
+  optional int64 time = 3;
+  optional int32 uuid = 4;
+}

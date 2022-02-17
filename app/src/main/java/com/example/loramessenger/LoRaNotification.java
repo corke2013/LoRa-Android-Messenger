@@ -11,6 +11,8 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.loramessenger.messages.LoRaTextMessage;
+
 class LoRaNotification {
     public static final int SERVICE_NOTIFICATION_ID = 1;
     public static final int MESSAGE_NOTIFICATION_ID = 2;
