@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        String createGroupMessageTable = "CREATE TABLE GROUP_MESSAGE_TABLE (ID INTEGER PRIMARY KEY AUTOINCREMENT, MESSAGE BLOB)";
+        String createGroupMessageTable = "CREATE TABLE GROUP_MESSAGE_TABLE (ID INTEGER PRIMARY KEY AUTOINCREMENT, MESSAGE BLOB, UUID TEXT)";
         String createUsernameTable = "CREATE TABLE USERNAME (ID INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT)";
         sqLiteDatabase.execSQL(createGroupMessageTable);
         sqLiteDatabase.execSQL(createUsernameTable);
@@ -33,11 +33,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public synchronized void addMessage(LoRaTextMessage loRaTextMessage) {
-        SQLiteDatabase database = this.getWritableDatabase();
+    public synchronized void createMessage(LoRaTextMessage loRaTextMessage) {
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("UUID", loRaTextMessage.getUuid());
+        contentValues.put("MESSAGE", SerializationUtils.serialize(loRaTextMessage));
+        sqLiteDatabase.insert("GROUP_MESSAGE_TABLE", null, contentValues);
+    }
+
+    public synchronized void updateMessage(LoRaTextMessage loRaTextMessage) {
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("MESSAGE", SerializationUtils.serialize(loRaTextMessage));
-        database.insert("GROUP_MESSAGE_TABLE", null, contentValues);
+        sqLiteDatabase.update("GROUP_MESSAGE_TABLE", contentValues, "UUID = ?", new String[]{loRaTextMessage.getUuid()});
+    }
+
+    public synchronized long deleteMessage(LoRaTextMessage loRaTextMessage) {
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+        return sqLiteDatabase.delete("GROUP_MESSAGE_TABLE", "UUID = ?", new String[]{String.valueOf(loRaTextMessage.getUuid())});
+    }
+
+    public LoRaTextMessage getMessage(String uuid) {
+        LoRaTextMessage loRaTextMessage = null;
+        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.query("GROUP_MESSAGE_TABLE", new String[]{"MESSAGE"}, "UUID = ?", new String[]{uuid}, null, null, null);
+        while (cursor.moveToNext()) {
+            loRaTextMessage = SerializationUtils.deserialize(cursor.getBlob(cursor.getColumnIndexOrThrow("MESSAGE")));
+        }
+        cursor.close();
+        return loRaTextMessage;
     }
 
     public void addUsername(String username) {

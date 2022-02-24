@@ -15,7 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.loramessenger.handlers.MainActivityHandler;
-import com.example.loramessenger.messages.LoRaMessageType;
+import com.example.loramessenger.messages.LoRaMessageDirection;
 import com.example.loramessenger.messages.LoRaTextMessage;
 import com.example.loramessenger.protos.compiled.LoRaAckMessageProto;
 import com.example.loramessenger.protos.compiled.LoRaMetadataProto;
@@ -24,6 +24,7 @@ import com.google.protobuf.Any;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private final List<LoRaTextMessage> loRaTextMessageList = new ArrayList<>();
@@ -53,8 +54,16 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         sendButton.setOnClickListener(view -> {
-            sendTextMessage(dataBaseHelper.getUsername(), messageEditText.getText().toString());
+
+            LoRaTextMessage loRaTextMessage = new LoRaTextMessage(
+                    "recipient",
+                    dataBaseHelper.getUsername(),
+                    UUID.randomUUID().toString(),
+                    messageEditText.getText().toString(),
+                    System.currentTimeMillis(),
+                    LoRaMessageDirection.OUT);
             messageEditText.setText("");
+            sendTextMessage(loRaTextMessage);
         });
     }
 
@@ -95,44 +104,27 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    //    Calls from handler
-    public void stuff(LoRaTextMessage loRaTextMessage) {
+    //    Call from handler
+    public void onReceiveTextMessage(LoRaTextMessage loRaTextMessage) {
         loRaTextMessageList.add(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
-        sendAckMessage(loRaTextMessage.getUuid());
     }
 
-    public void stuff2(LoRaAckMessageProto.AckMessage ackMessage) {
-        loRaTextMessageList.get(ackMessage.getMetadata().getUuid()).setDelivered(true);
-        myAdapter.notifyItemChanged(ackMessage.getMetadata().getUuid());
+    //    Call from handler
+    public void onReceiveAckMessage(LoRaTextMessage loRaTextMessage) {
+        for (int i = 0; i < loRaTextMessageList.size(); i++) {
+            if (loRaTextMessageList.get(i).getUuid().equals(loRaTextMessage.getUuid())) {
+                loRaTextMessageList.set(i, loRaTextMessage);
+                myAdapter.notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
-    private void sendTextMessage(String username, String strMessage) {
-        LoRaTextMessage loRaTextMessage = new LoRaTextMessage(username, strMessage, myAdapter.getItemCount());
-        loRaTextMessage.setMessageType(LoRaMessageType.SENT);
+    private void sendTextMessage(LoRaTextMessage loRaTextMessage) {
         loRaTextMessageList.add(loRaTextMessage);
-        dataBaseHelper.addMessage(loRaTextMessage);
         myAdapter.notifyItemInserted(myAdapter.getItemCount());
-        LoRaMetadataProto.Metadata metadata = LoRaMetadataProto.Metadata.newBuilder()
-                .setSender(loRaTextMessage.getSender())
-                .setUuid(loRaTextMessage.getUuid())
-                .build();
-        LoRaTextMessageProto.TextMessage textMessage = LoRaTextMessageProto.TextMessage.newBuilder()
-                .setMetadata(metadata)
-                .setMessage(strMessage)
-                .build();
-        loRaServiceConnection.getLoRaService().write(Any.pack(textMessage));
-    }
-
-    private void sendAckMessage(int uuid) {
-        LoRaMetadataProto.Metadata metadata = LoRaMetadataProto.Metadata.newBuilder()
-                .setUuid(uuid)
-                .build();
-        LoRaAckMessageProto.AckMessage ackMessage = LoRaAckMessageProto.AckMessage.newBuilder()
-                .setMetadata(metadata)
-                .setReceived(true)
-                .build();
-        loRaServiceConnection.getLoRaService().write(Any.pack(ackMessage));
+        loRaServiceConnection.getLoRaService().write(loRaTextMessage);
     }
 
     private void exit() {

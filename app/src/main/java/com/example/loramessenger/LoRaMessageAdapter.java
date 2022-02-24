@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.loramessenger.messages.LoRaMessageType;
+import com.example.loramessenger.messages.LoRaMessageDirection;
 import com.example.loramessenger.messages.LoRaTextMessage;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class LoRaMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemViewType(int position) {
-        if (loRaTextMessageList.get(position).getMessageType() == LoRaMessageType.RECEIVED) {
+        if (loRaTextMessageList.get(position).getLoRaMessageDirection() == LoRaMessageDirection.IN) {
             return 0;
         }
         return 1;
